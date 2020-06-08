@@ -2,9 +2,9 @@ package com.qingcheng.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.qingcheng.entity.PageResult;
+import com.qingcheng.entity.Result;
 import com.qingcheng.pojo.goods.Brand;
 import com.qingcheng.service.goods.BrandService;
-import org.omg.PortableInterceptor.INACTIVE;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -57,5 +57,47 @@ public class BrandController {
     @PostMapping("/findPage")
     public PageResult<Brand> findPage(Integer page,Integer size,@RequestBody Map<String,Object> searchMap){
         return brandService.findPage(page,size,searchMap);
+    }
+
+    /**
+     * 根据id查询
+     * @param id
+     * @return
+     */
+    @GetMapping("/findById")
+    public Brand findById(Integer id){
+        return brandService.findById(id);
+    }
+
+    /**
+     * 保存商品
+     * @param brand
+     */
+    @PostMapping("/addBrand")
+    public Result addBrand(@RequestBody Brand brand){
+        brandService.addBrand(brand);
+        return new Result();
+    }
+
+    /**
+     * 更新商品
+     * @param brand
+     * @return
+     */
+    @PostMapping("/updateBrand")
+    public Result updateBrand(@RequestBody Brand brand){
+        brandService.update(brand);
+        return new Result();
+    }
+
+    /**
+     * 删除商品
+     * @param id
+     * @return
+     */
+    @GetMapping("/deleteById")
+    public Result deleteById(Integer id){
+        brandService.deleteById(id);
+        return new Result();
     }
 }

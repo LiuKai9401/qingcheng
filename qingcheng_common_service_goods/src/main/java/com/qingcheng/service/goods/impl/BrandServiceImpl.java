@@ -71,6 +71,43 @@ public class BrandServiceImpl implements BrandService {
     }
 
     /**
+     * 根据id查询商品
+     * @param id
+     * @return
+     */
+    @Override
+    public Brand findById(Integer id) {
+        return brandMapper.selectByPrimaryKey(id);
+    }
+
+    /**
+     * 保存商品
+     * @param brand
+     */
+    @Override
+    public void addBrand(Brand brand) {
+        brandMapper.insertSelective(brand);
+    }
+
+    /**
+     * 更新商品
+     * @param brand
+     */
+    @Override
+    public void update(Brand brand) {
+        brandMapper.updateByPrimaryKeySelective(brand);
+    }
+
+    /**
+     * 删除商品
+     * @param id
+     */
+    @Override
+    public void deleteById(Integer id) {
+        brandMapper.deleteByPrimaryKey(id);
+    }
+
+    /**
      * 抽取构造条件
      * @param searchMap
      * @return

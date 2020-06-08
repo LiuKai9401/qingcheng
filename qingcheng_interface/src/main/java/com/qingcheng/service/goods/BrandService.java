@@ -15,4 +15,12 @@ public interface BrandService {
     List<Brand> searchMap(Map<String,Object> searchMap);
 
     PageResult<Brand> findPage(Integer page, Integer size, Map<String,Object> searchMap);
+
+    Brand findById(Integer id);
+
+    void addBrand(Brand brand);
+
+    void update(Brand brand);
+
+    void deleteById(Integer id);
 }
