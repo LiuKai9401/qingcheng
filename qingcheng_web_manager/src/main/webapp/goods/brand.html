@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>品牌管理</title>
+    <link rel="stylesheet" href="../css/elementui.css">
+    <style>
+        .avatar-uploader .el-upload {
+            border: 1px dashed #d9d9d9;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .avatar-uploader .el-upload:hover {
+            border-color: #409EFF;
+        }
+        .avatar-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 178px;
+            height: 178px;
+            line-height: 178px;
+            text-align: center;
+        }
+        .avatar {
+            width: 178px;
+            height: 178px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!--搜索内容-->
+    <el-form :inline="true">
+        <el-form-item label="品牌名称">
+            <el-input placeholder="品牌名称" v-model="searchMap.name"></el-input>
+        </el-form-item>
+        <el-form-item label="品牌首字母" >
+            <el-input placeholder="品牌首字母" v-model="searchMap.letter"></el-input>
+        </el-form-item>
+        <el-button type="primary" round  @click="fetchData()">查询</el-button>
+        <el-button type="primary" round  @click="pojo={},imageUrl='',formDialogVisible = true">新增</el-button>
+    </el-form>
+
+    <!--列表内容-->
+    <el-table
+            :data="tableData"
+            border
+            style="width: 100%" >
+        <el-table-column
+                prop="id"
+                label="ID"
+                width="180" align="center">
+        </el-table-column>
+        <el-table-column
+                prop="name"
+                label="名称" align="center" >
+        </el-table-column>
+        <el-table-column
+                prop="letter"
+                label="首字母"
+                width="180" align="center">
+        </el-table-column>
+        <el-table-column
+                label="图片"
+                width="180">>
+            <template slot-scope="scope">
+                <img width="100px" height="50px" :src="scope.row.image">
+            </template>
+        </el-table-column>
+        <el-table-column
+                label="操作"
+                width="180" align="center">
+            <template slot-scope="scope">
+                <el-button type="text" size="small" @click="edit(scope.row.id)">编辑</el-button>
+                <el-button type="text" size="small" @click="dele(scope.row.id)">删除</el-button>
+            </template>
+        </el-table-column>
+    </el-table>
+
+    <!--分页内容
+        @size-change：page-size属性发生变化时，调用方法
+        @current-change：current-page属性发生变化时，调用方法
+        :current-page.sync：表示当前页
+        :page-sizes：每页显示个数选择器的选项设置
+        :page-size：每页大小
+        layout：需要使用的组件
+        :total：返回的总记录数
+    -->
+    <el-pagination
+            @size-change="fetchData()"
+            @current-change="fetchData()"
+            :current-page.sync="currentPage"
+            :page-sizes="[10, 20, 30, 40]"
+            :page-size.sync="size"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total">
+    </el-pagination>
+    {{formDialogVisible}}
+    <!--Dialog内容-->
+    <el-dialog
+            title="品牌列表"
+            :visible.sync="formDialogVisible"
+            width="40%"
+            left>
+                <el-form label-width="82px" label-position="left">
+                    <el-form-item label="品牌名称">
+                        <el-input placeholder="品牌名称" v-model="pojo.name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="品牌首字母" >
+                        <el-input placeholder="品牌首字母" v-model="pojo.letter"></el-input>
+                    </el-form-item>
+                    <el-form-item label="图片">
+                        <!--
+                            图片上传控件：
+                                action : 文件上传地址
+                                show-file-list：是否显示已上传列表
+                                on-success: 上传成功绑定事件
+                                before-upload： 上传之前验证事件
+                        -->
+                        <el-upload
+                                class="avatar-uploader"
+                                action="../upload/oss.do?folder=brand"
+                                :show-file-list="false"
+                                :on-success="handleAvatarSuccess"
+                                :before-upload="beforeAvatarUpload">
+                            <img v-if="imageUrl" :src="imageUrl" class="avatar">
+                            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                        </el-upload>
+                    </el-form-item>
+                    <el-form-item label="排序" >
+                        <el-input placeholder="排序" v-model="pojo.seq"></el-input>
+                    </el-form-item>
+
+                    <el-form-item>
+                        <el-button type="primary" @click="save()" plain>保存</el-button>
+                        <el-button type="success" @click="formDialogVisible = false" plain>关闭</el-button>
+                    </el-form-item>
+                </el-form>
+    </el-dialog>
+</div>
+
+</body>
+<script src="../js/vue.js"></script>
+<script src="../js/elementui.js"></script>
+<script src="../js/axios.js"></script>
+<script>
+
+    new Vue({
+        el : "#app",
+        data(){
+            return{
+                tableData:[],//返回的集合对象
+                currentPage:1,//当前页
+                size:10,//每页大小数
+                total:10,//总记录数
+                searchMap:{},//查询对象封装
+                formDialogVisible:false,//设置Dialog默认隐藏
+                pojo:{},//表单新增对象
+                imageUrl:''//图片地址
+            }
+        },
+        methods:{
+            fetchData() {
+                axios.post(`../brand/findPage.do?page=${this.currentPage}&size=${this.size}`,this.searchMap).then(
+                   response=> {
+                     this.tableData = response.data.rows;
+                     this.total= response.data.total;
+                });
+            },
+            save(){
+                //将图片上传中绑定的imageUrl地址，给予pojo.image中，存入数据汇总
+                this.pojo.image = this.imageUrl;
+                axios.post(`../brand/${this.pojo.id==null?'addBrand.do':'updateBrand.do'}`,this.pojo).then(
+                    reponse=>{
+                        this.formDialogVisible = false;
+                        this.fetchData();
+                })
+            },
+            edit(id){
+                this.formDialogVisible = true;
+                axios.get(`../brand/findById.do?id=${id}`).then(
+                    response=>{
+                    this.pojo = response.data;
+                    //将数据中的返回的image地址，给到组件upload中的imgUrl中
+                    this.imageUrl = this.pojo.image;
+                })
+            },
+            dele(id){
+                this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    axios.get(`../brand/deleteById.do?id=${id}`).then(
+                        response=>{
+                            this.fetchData();
+                            this.$message({
+                                type: 'success',
+                                message: '删除成功!'
+                            });
+                    })
+                });
+            },
+            handleAvatarSuccess(res, file) {
+                // 获取上传成功之后，返回的URL地址（controller返回）
+                this.imageUrl = file.response;
+            },
+            beforeAvatarUpload(file) {
+                const isJPG = file.type === 'image/jpeg';
+                const isLt2M = file.size / 1024 / 1024 < 2;
+
+                if (!isJPG) {
+                    this.$message.error('上传图片只能是 JPG 格式!');
+                }
+                if (!isLt2M) {
+                    this.$message.error('上传图片大小不能超过 2MB!');
+                }
+                return isJPG && isLt2M;
+            }
+        },
+        created(){
+            this.fetchData();
+        }
+    })
+
+</script>
+</html>

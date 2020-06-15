@@ -1,4 +1,4 @@
-package com.qingcheng.controller;
+package com.qingcheng.controller.goods;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.qingcheng.entity.PageResult;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/goods")
+@RequestMapping("/brand")
 public class BrandController {
 
     @Reference
